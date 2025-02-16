@@ -3,7 +3,6 @@ www.gco.gov.qa:443#卡塔尔
 www.udemy.com:443#美国
 skk.moe:443#优选域名
 www.gov.se:443#瑞典
-www.who.int:443#瑞士
 www.visa.co.jp:443#日本
 www.csgo.com:443#优选域名
 gur.gov.ua:443#乌克兰
@@ -11,7 +10,6 @@ www.shopify.com:443#加拿大
 www.visakorea.com:443#韩国
 icook.tw:443#中国台湾
 www.visa.com.hk:443#中国香港
-time.cloudflare.com:443#美国
 www.zsu.gov.ua:443#乌克兰
 www.4chan.org:443#美国
 www.gov.ua:443#乌克兰
