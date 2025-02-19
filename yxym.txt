@@ -2,7 +2,6 @@ cdnjs.com
 www.racknerd.com
 store.epicgames.com
 www.epicgames.com
-visa.cn
 www.fortnite.com
 www.visa.com.tw
 africa.visa.com
@@ -14,15 +13,7 @@ time.is
 www.wto.org
 icook.hk
 icook.tw
-visamiddleeast.com
-visa.com.hk
-visa.co.id
-visa.co.ke
-visa.co.in
-visa.ca
-visa.com.ai
 caribbean.visa.com
-ppc.land
 portal.cloudflarepartners.com
 support.cloudflarewarp.com
 developers.cloudflare.com
@@ -54,11 +45,7 @@ www.visakorea.com
 www.zsu.gov.ua
 www.digitalocean.com
 www.visa.com
-www.hugedomains.com
 www.whatismyip.com
 www.pcmag.com
-www.iplocation.net
-www.ipchicken.com
-www.okcupid.com
 fbi.gov
 whatismyipaddress.com
