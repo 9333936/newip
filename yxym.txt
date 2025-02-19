@@ -6,8 +6,6 @@ www.visaeurope.at
 www.visa.com.mt
 qa.visamiddleeast.com
 www.wto.org
-icook.hk
-icook.tw
 caribbean.visa.com
 portal.cloudflarepartners.com
 developers.cloudflare.com
@@ -26,9 +24,7 @@ radar.cloudflare.com
 support.cloudflare.com
 challenge.developers.cloudflare.com
 pages.cloudflare.com
-www.gco.gov.qa
 www.udemy.com
-skk.moe
 www.gov.se
 www.csgo.com
 gur.gov.ua
