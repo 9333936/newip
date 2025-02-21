@@ -7,7 +7,7 @@ async function handleRequest(request) {
     const pathname = url.pathname
 
     // 定义需要保护的路径
-    const protectedPath = '/yg-tor'
+    const protectedPath = '/auto'
 
     // 检查请求路径是否匹配
     if (pathname === protectedPath) {
@@ -26,16 +26,14 @@ async function generateConfigResponse() {
         // 获取 IP 列表
         const ipList = await fetchIPs('https://raw.githubusercontent.com/9333936/newip/refs/heads/main/newip.txt')
         
-        // 获取域名列表
-        const domainList = await fetchDomains('https://raw.githubusercontent.com/9333936/newip/refs/heads/main/yxym.txt')
-        
+
         // 组合 IP 和域名生成代理服务器列表
-        const proxyServers = generateProxyList(ipList, domainList)
+        const proxyServers = generateProxyList(ipList)
         
         // 配置参数
         const defaultPorts = [443, 2053, 2096, 8443]
-        const hostname = 'yg-tor.zxkjd.icu'
-        const password = 'yg-tor' // 请替换为实际密码
+        const hostname = 'ygtr.zxkjd.icu'
+        const password = 'auto' // 请替换为实际密码
 
         // 生成 YAML 配置内容
         const yamlContent = createYAML(proxyServers, hostname, password)
@@ -62,16 +60,6 @@ async function fetchIPs(url) {
     return text.split('\n').filter(line => line.trim() !== '')
 }
 
-async function fetchDomains(url) {
-    const response = await fetch(url)
-    if (!response.ok) {
-        throw new Error(`Failed to fetch domains: ${response.statusText}`)
-    }
-    const text = await response.text()
-    // 按行分割并过滤空行
-    return text.split('\n').filter(line => line.trim() !== '')
-}
-
 function generateProxyList(ips, domains) {
     const proxyServers = []
     const remarkCount = {} // 用于记录每个备注出现的次数
@@ -79,11 +67,6 @@ function generateProxyList(ips, domains) {
     // 添加 IP 地址作为代理服务器
     ips.forEach(ip => {
         proxyServers.push(parseProxyEntry(ip, remarkCount))
-    })
-    
-    // 添加域名作为代理服务器
-    domains.forEach(domain => {
-        proxyServers.push(parseProxyEntry(domain, remarkCount))
     })
     
     return proxyServers
@@ -101,7 +84,7 @@ function parseProxyEntry(entry, remarkCount) {
 
     // 如果该备注已经存在，则添加编号
     if (remarkCount[remark]) {
-        remarkCount[remark] += 1
+        remarkCount[remark] += 0
         remark += `_${remarkCount[remark]}`
     } else {
         remarkCount[remark] = 1
@@ -121,105 +104,84 @@ function getRandomPort() {
     return defaultPorts[Math.floor(Math.random() * defaultPorts.length)]
 }
 
+ 
 function createYAML(proxies, hostname, password) {
-    const lines = []
+    const proxyLines = proxies.map(proxy => {
+        const [ip, port] = proxy.address.split(':');
+        return `
+  - name: ${proxy.remark}
+    type: trojan
+    server: ${ip}
+    port: ${port}
+    password: ${password}
+    udp: false
+    sni: ${hostname}
+    network: ws
+    ws-opts:
+      path: "/?ed=2560"
+      headers:
+        Host: ${hostname}`;
+    }).join('');
 
-    // 添加全局配置
-    lines.push(`port: 443`)
-    lines.push('allow-lan: true')
-    lines.push('mode: rule')
-    lines.push('log-level: info')
-    lines.push('unified-delay: true')
-    lines.push('global-client-fingerprint: chrome')
+    const groupProxies = proxies.map(p => p.remark).join('\n    - ');
 
-    // 添加 DNS 配置
-    lines.push('dns:')
-    lines.push('  enable: true')
-    lines.push('  listen: :53')
-    lines.push('  ipv6: true')
-    lines.push('  enhanced-mode: fake-ip')
-    lines.push('  fake-ip-range: 198.18.0.1/16')
-    lines.push('  default-nameservers:')
-    lines.push('    - 223.5.5.5')
-    lines.push('    - 114.114.114.114')
-    lines.push('    - 8.8.8.8')
-    lines.push('  nameserver:')
-    lines.push('    - https://dns.alidns.com/dns-query')
-    lines.push('    - https://doh.pub/dns-query')
-    lines.push('  fallback:')
-    lines.push('    - https://1.0.0.1/dns-query')
-    lines.push('    - tls://dns.google')
-    lines.push('  fallback-filter:')
-    lines.push('    geoip: true')
-    lines.push('    geoip-code: CN')
-    lines.push('    ipcidr:')
-    lines.push('      - 240.0.0.0/4')
+    return `
+port: 7890
+allow-lan: true
+mode: rule
+log-level: info
+unified-delay: true
+global-client-fingerprint: chrome
+dns:
+  enable: true
+  listen: :53
+  ipv6: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  default-nameserver:
+    - 223.5.5.5
+    - 114.114.114.114
+    - 8.8.8.8
+  nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  fallback:
+    - https://1.0.0.1/dns-query
+    - tls://dns.google
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
 
-    // 添加 Proxies 配置
-    lines.push('')
-    lines.push('proxies:')
-    proxies.forEach(proxy => {
-        const { address, remark } = proxy
-        const [ip, port] = address.split(':')
+proxies:${proxyLines}
 
-        lines.push(`  - name: "${remark}"`)
-        lines.push('    type: trojan')
-        lines.push(`    server: ${ip}`)
-        lines.push(`    port: ${port}`)
-        lines.push(`    password: "${password}"`)
-        lines.push('    udp: false')
-        lines.push(`    sni: "${hostname}"`)
-        lines.push('    network: ws')
-        lines.push('    ws-opts:')
-        lines.push('      path: "/?ed2560"')
-        lines.push(`      headers:`)
-        lines.push(`        Host: "${hostname}"`)
-    })
+proxy-groups:
+- name: 负载均衡
+  type: load-balance
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  proxies:
+    - ${groupProxies}
 
-    // 添加 Proxy Groups 配置
-    lines.push('')
-    lines.push('proxy-groups:')
-    
-    // 负载均衡
-    lines.push('  - name: "负载均衡"')
-    lines.push('    type: load-balance')
-    lines.push('    strategy: consistent-hashing')
-    lines.push('    url: http://www.gstatic.com/generate_204')
-    lines.push('    interval: 180')
-    lines.push('    proxies:') // 不使用引号
-    proxies.forEach(p => {
-        lines.push(`      - "${p.remark}"`) // 每个代理名称单独一行，并用引号包围
-    })
+- name: 自动选择
+  type: url-test
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  tolerance: 50
+  proxies:
+    - ${groupProxies}
 
-    // 自动选择
-    lines.push('')
-    lines.push('  - name: "自动选择"')
-    lines.push('    type: url-test')
-    lines.push('    url: http://www.gstatic.com/generate_204')
-    lines.push('    interval: 300')
-    lines.push('    tolerance: 50')
-    lines.push('    proxies:') // 不使用引号
-    proxies.forEach(p => {
-        lines.push(`      - "${p.remark}"`) // 每个代理名称单独一行，并用引号包围
-    })
+- name: 🌍选择代理
+  type: select
+  proxies:
+    - 负载均衡
+    - 自动选择
+    - DIRECT
+    - ${groupProxies}
 
-    // 选择代理
-    lines.push('')
-    lines.push('  - name: "选择代理"')
-    lines.push('    type: select')
-    lines.push('    proxies:')
-    const allProxyNames = proxies.map(p => p.remark)
-    const selectProxies = ['DIRECT', '负载均衡', '自动选择', ...allProxyNames] // 将 DIRECT 和其他代理组放在前面
-    selectProxies.forEach(name => {
-        lines.push(`      - "${name}"`)
-    })
-
-    // 添加 Rules 配置
-    lines.push('')
-    lines.push('rules:')
-    lines.push('  - GEOIP,LAN,DIRECT')
-    lines.push('  - GEOIP,CN,DIRECT')
-    lines.push('  - MATCH,选择代理')
-
-    return lines.join('\n')
+rules:
+  - GEOIP,LAN,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,🌍选择代理`;
 }
