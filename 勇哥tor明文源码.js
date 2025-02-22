@@ -3,31 +3,26 @@ import { connect } from "cloudflare:sockets";
 let Pswd = "auto";
 const proxyIPs = ["ts.hpc.tw"]; 
 let cn_hostnames = [''];
-
+let cachedParsedIPs = null;
 let IP集合 = [
 'www.wto.org:2096#优选域名',
 'www.udemy.com:443',
-'www.visa.com.sg#优选域名',
-'www.gov.se',
-'www.zsu.gov.ua',
-'fbi.gov'
 ]
 
 function 解析IP集合() {
-    const 可用端口 = ["443","8443","2096","2083","2087","2053"];
+    if (cachedParsedIPs) {
+        return cachedParsedIPs;
+    }
+    const 可用端口 = ["443", "8443", "2096", "2083", "2087", "2053"];
     const 备注计数 = {};
-
-    return IP集合.map((item, index) => {
+    const result = IP集合.map((item, index) => {
         const [hostPort, comment] = item.split('#');
-        let [host, port] = hostPort.includes(':') ? 
-            hostPort.split(':') : 
+        let [host, port] = hostPort.includes(':')?
+            hostPort.split(':') :
             [hostPort, 可用端口[Math.floor(Math.random() * 可用端口.length)]];
-        
-        // 修正1：使用原始备注作为计数基准
+
         const 原始备注 = comment || host;
         let 最终备注 = 原始备注;
-        
-        // 修正2：独立维护原始备注的计数器
         if (备注计数[原始备注]) {
             备注计数[原始备注]++;
             最终备注 = `${原始备注} ${备注计数[原始备注] - 1}`;
@@ -42,7 +37,41 @@ function 解析IP集合() {
             comment: 最终备注.trim()
         };
     }).filter(item => item.host);
+    cachedParsedIPs = result;
+    return result;
 }
+
+async function fetchAndUpdateIPs() {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/9333936/newip/refs/heads/main/newip.txt');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const text = await response.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        const newIPs = lines.map(line => {
+            const [ipPort, comment] = line.split('#');
+            const [ip, port = '443'] = ipPort.split(':').concat(['443']);
+            return `${ip}:${port}#${comment || ip}`;
+        });
+        const existingIPs = new Set(IP集合.map(item => item.split(':')[0]));
+        const uniqueIPs = newIPs.filter(ip => {
+            const ipPart = ip.split(':')[0];
+            if (!existingIPs.has(ipPart)) {
+                existingIPs.add(ipPart);
+                return true;
+            }
+            return false;
+        });
+        IP集合.push(...uniqueIPs);
+        // 更新IP集合后重置缓存
+        cachedParsedIPs = null;
+        console.log('IPs imported successfully:', IP集合);
+    } catch (error) {
+        console.error('Error fetching and parsing IPs:', error);
+    }
+}
+
  
 let sha224Password;
 let proxyIP = proxyIPs[Math.floor(Math.random() * proxyIPs.length)];
@@ -53,7 +82,6 @@ const worker_default = {
     try {
       const { proxyip } = env;
 			if (proxyip) {
-			
 				if (proxyip.includes(']:')) {
 					let lastColonIndex = proxyip.lastIndexOf(':');
 					proxyPort = proxyip.slice(lastColonIndex + 1);
@@ -79,7 +107,7 @@ const worker_default = {
 			console.log('ProxyIP:', proxyIP);
 			console.log('ProxyPort:', proxyPort);
       Pswd = env.pswd || Pswd;
-
+      await fetchAndUpdateIPs();
       sha224Password = sha256.sha224(Pswd);
       const upgradeHeader = request.headers.get("Upgrade");
       const url = new URL(request.url);
@@ -95,7 +123,8 @@ const worker_default = {
               },
             });
           }
-
+          
+          
 		case `/${Pswd}/pty`: {
 			const ptyConfig = getptyConfig(Pswd, request.headers.get('Host'));
 			return new Response(`${ptyConfig}`, {
