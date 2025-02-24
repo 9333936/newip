@@ -2,7 +2,7 @@ www.fortnite.com
 www.visa.com.tw
 africa.visa.com
 www.visa.com.sg
-www.visaeurope.at
+www.visa.com.hk
 www.visa.com.mt
 qa.visamiddleeast.com
 www.wto.org
@@ -19,17 +19,13 @@ ns5.cloudflare.com
 ns6.cloudflare.com
 ns3.cloudflare.com
 ns4.cloudflare.com
-workers.cloudflare.com
 radar.cloudflare.com
 support.cloudflare.com
 challenge.developers.cloudflare.com
 pages.cloudflare.com
 www.udemy.com
 www.gov.se
-www.csgo.com
 gur.gov.ua
-www.shopify.com
-www.visakorea.com
 www.zsu.gov.ua
 www.digitalocean.com
 www.visa.com
