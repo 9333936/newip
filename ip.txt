@@ -1,6 +1,4 @@
-staticdelivery.nexusmods.com:2096#优名5
-store.ubi.com:2096#优名4
-www.shopify.com:2096#优名3
+store.ubi.com:2096#优名3
 mfa.gov.ua:2096#优名2
 www.wto.org:2096#优名1
 104.25.243.118:2096#优1
